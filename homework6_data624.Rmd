@@ -1,0 +1,128 @@
+---
+title: "ARIMA Homework"
+author: "Steve Phillips"
+date: "2024-03-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(fpp3)
+```
+## Exercises 9.1, 9.2, 9.3, 9.5, 9.6,9.7,9.8
+
+## Exercise 1
+
+
+### A.)
+## All of these figures indicate that the data is white noise. They all fall within the 95% confidence interval boundries. The degree of correlation displayed falls into a narrower range because as more values are added, coincidental lag correlation is less likely to appear.
+
+## B.)
+## The critical values for time series are defined by +/-  (1.96/ sqrt(T)). Since the time series with more random values is longer, the critical value will be smaller. The autocorrelations will be different in each figure because the coincidental autocorrelation intervals will change as more random numbers are introduced. 
+
+## 2.)
+
+```{r}
+gafa_stock %>% filter(Symbol == "AMZN") %>%
+  autoplot(Adj_Close)
+```
+
+```{r}
+gafa_stock %>% 
+  filter(Symbol == "AMZN") %>% 
+  gg_tsdisplay(Adj_Close, plot_type = "partial")
+```
+
+## By definition, any time series that contains trends is not stationary. The time series plot clearly has an upward trend to it. We can also observe the ACF. In a stationary time series, the ACF will drop to zero quickly, which is not the case for this data. 
+
+## 3.)
+
+##.A)
+
+```{r}
+##Plot the turkish GDP
+turkish <- global_economy %>% filter(Country == "Turkey")
+global_economy %>% filter(Country == "Turkey") %>%
+  autoplot(GDP) + labs(title = "Turkish GDP") + xlab("Year")
+```
+```{r}
+## Apply box cox transformation:
+lambda <- turkish %>% features(GDP , features = guerrero) %>%
+  pull(lambda_guerrero)
+turkish <- turkish %>% mutate(box_cox = box_cox(GDP, lambda))
+```
+
+
+```{r}
+## Determine the optimal degree for the data:
+turkish %>% features(box_cox, unitroot_ndiffs)
+```
+
+## The optimal number of differencing is 1 according to the unit root test. 
+
+
+```{r}
+turkish <- turkish %>% mutate(diff_close = difference(box_cox))
+turkish %>% autoplot(diff_close)
+```
+## Check to see if the data is stationary
+
+```{r}
+turkish %>% 
+  gg_tsdisplay(diff_close, plot_type = "partial")
+```
+
+## Based on the timeseries and acf plots, the data is now stationary
+
+## B.)
+
+```{r}
+tasmania <-aus_accommodation %>% filter(State == "Tasmania")
+tasmania %>% autoplot(Takings)
+```
+
+## Apply box-cox transformation
+
+```{r}
+lambda <- tasmania %>% features(Takings , features = guerrero) %>%
+  pull(lambda_guerrero)
+
+tasmania <- tasmania %>% mutate(box_cox = box_cox(Takings, lambda))
+tasmania %>% autoplot(box_cox) + labs(title = "Plot of Tasmania Data with Box-Cox transformation")
+```
+## Determine the amount of differencing needed
+
+```{r}
+tasmania %>% features(box_cox, unitroot_ndiffs)
+```
+
+## one level of differencing needs to be applied
+
+```{r}
+tasmania <- tasmania %>% mutate(diff_takings = difference(box_cox))
+tasmania %>% autoplot(diff_takings)
+```
+
+
+```{r}
+tasmania %>% 
+  gg_tsdisplay(diff_takings, plot_type = "partial")
+tasmania <- tasmania %>% mutate(diff_diff = difference(difference(box_cox,12),1))
+```
+
+
+```{r}
+tasmania %>% autoplot(diff_diff)
+```
+
+
+
+
+
+
+
+
+
