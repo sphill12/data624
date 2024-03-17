@@ -1,0 +1,16 @@
+---
+title: "Homework_6_data624"
+author: "Steve Phillips"
+date: "2024-03-16"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## 9.1, 9.2, 9.3, 9.5, 9.6,9.7, 9.8
+
+```{r}
+library(fpp3)
+```
+

@@ -11,6 +11,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r}
 library(fpp3)
+library(urca)
+library(fabletools)
 ```
 ## Exercises 9.1, 9.2, 9.3, 9.5, 9.6,9.7,9.8
 
@@ -98,6 +100,9 @@ tasmania %>% autoplot(box_cox) + labs(title = "Plot of Tasmania Data with Box-Co
 ```{r}
 tasmania %>% features(box_cox, unitroot_ndiffs)
 ```
+```{r}
+tasmania %>% features(box_cox, unitroot_nsdiffs)
+```
 
 ## one level of differencing needs to be applied
 
@@ -110,13 +115,128 @@ tasmania %>% autoplot(diff_takings)
 ```{r}
 tasmania %>% 
   gg_tsdisplay(diff_takings, plot_type = "partial")
-tasmania <- tasmania %>% mutate(diff_diff = difference(difference(box_cox,12),1))
+tasmania <- tasmania %>% mutate(seasonal_diff = difference(difference(box_cox,lag = 4),1))
 ```
 
 
 ```{r}
-tasmania %>% autoplot(diff_diff)
+tasmania %>% autoplot(seasonal_diff)
 ```
+```{r}
+tasmania %>% 
+  gg_tsdisplay(seasonal_diff, plot_type = "partial")
+```
+
+## C.)
+
+```{r}
+souvenirs %>%
+  autoplot(Sales)
+```
+
+## Apply boxcox transformation
+
+```{r}
+lambda <- souvenirs %>% features(Sales , features = guerrero) %>%
+  pull(lambda_guerrero)
+
+souvenirs <- souvenirs %>% mutate(box_cox = box_cox(Sales, lambda))
+souvenirs %>% autoplot(box_cox) + labs(title = "Plot of Souvenir Data with Box-Cox transformation")
+```
+## Determine what differences need to be applied
+```{r}
+souvenirs %>% features(box_cox, unitroot_ndiffs)
+```
+```{r}
+souvenirs %>% features(box_cox, unitroot_nsdiffs)
+```
+## Differences should be applied for seasonality and regularly
+
+```{r}
+souvenirs <- souvenirs %>% mutate(seasonal_dif = difference(difference(box_cox, lag =12), lag= 1))
+souvenirs %>% autoplot(seasonal_dif)
+```
+```{r}
+souvenirs %>% 
+  gg_tsdisplay(seasonal_dif, plot_type = "partial")
+
+```
+
+```{r}
+set.seed(123478)
+myseries <- aus_retail |>
+  filter(`Series ID` == sample(aus_retail$`Series ID`,1))
+myseries %>% autoplot(Turnover
+                      )
+```
+## First we will apply a boxcox transformation:
+
+```{r}
+lambda <- myseries %>% features(Turnover , features = guerrero) %>%
+  pull(lambda_guerrero)
+
+myseries <- myseries %>% mutate(box_cox = box_cox(Turnover, lambda))
+myseries %>% autoplot(box_cox) + labs(title = "Plot of Turnover Data with Box-Cox transformation")
+```
+
+## Now the optimal differencing must be determined
+
+```{r}
+myseries %>% features(Turnover, unitroot_ndiffs)
+myseries %>% features(Turnover, unitroot_nsdiffs)
+```
+
+## Both types of differences should be applied
+
+```{r}
+myseries <- myseries %>% mutate(seasonal_dif = difference(difference(box_cox, lag =12), lag= 1))
+myseries %>% autoplot(seasonal_dif)
+```
+```{r}
+myseries %>% 
+  gg_tsdisplay(seasonal_dif, plot_type = "partial")
+```
+
+## 6.)
+
+## A.)
+
+```{r}
+y <- numeric(100)
+e <- rnorm(100)
+for(i in 2:100)
+  y[i] <- 0.6*y[i-1] + e[i]
+sim <- tsibble(idx = seq_len(100), y = y, index = idx)
+```
+```{r}
+sim %>% autoplot(y)
+```
+
+## B.)
+
+```{r}
+y <- numeric(100)
+e <- rnorm(100)
+for(i in 2:100)
+  y[i] <- 0.9*y[i-1] + e[i]
+sim <- tsibble(idx = seq_len(100), y = y, index = idx)
+
+sim %>% autoplot(y)
+```
+```{r}
+y <- numeric(100)
+e <- rnorm(100)
+for(i in 2:100)
+  y[i] <- 0.1*y[i-1] + e[i]
+sim <- tsibble(idx = seq_len(100), y = y, index = idx)
+
+sim %>% autoplot(y)
+```
+
+## Decreasing theta will increase the sinusoidal characteristics of the plot, making the data bounce across the x axis around 0 more often, increasing theta will do the opposite.
+
+
+
 
 
 
